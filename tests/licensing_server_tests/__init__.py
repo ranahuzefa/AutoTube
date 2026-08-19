@@ -1,0 +1,1 @@
+"""Licensing server test package."""

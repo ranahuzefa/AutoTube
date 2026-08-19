@@ -1,0 +1,52 @@
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Project state / user artifacts
+projects/
+*.log
+*.tmp
+
+# Runtime-generated output and caches
+/output/
+/stock_cache/
+/????????-????-????-????-????????????.json
+*.part
+*.partial
+
+# Local licensing and secret state
+/licensing_server/data/*.db
+/licensing_server/keys/
+/secrets.json
+/license.json
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+
+# Local AI/tool configuration
+/.commandcode/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

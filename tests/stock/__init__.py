@@ -1,0 +1,1 @@
+"""Stock test package."""
