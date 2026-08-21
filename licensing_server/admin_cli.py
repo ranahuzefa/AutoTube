@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .constants import PUBLIC_KEY_FILE
 from .database import LicenseDatabase
-from .generation import format_key, generate_canonical_key
+from .generation import format_key, generate_canonical_key, normalize_product_key
 from .issuance import issue_activation, validate_activation
 from .keypair import (
     ensure_keypair,
@@ -71,7 +71,7 @@ def _cmd_revoke_key(args) -> int:
 
 def _cmd_issue_token(args) -> int:
     db = LicenseDatabase()
-    canonical = args.product_key.replace("-", "").upper()
+    canonical = normalize_product_key(args.product_key)
     from .database import _hash_key
 
     record = db.get_license_by_key_hash(_hash_key(canonical))

@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from autotube.exceptions import LicenseInvalidError
 from autotube.licensing.offline import OfflineLicensingService
+from autotube.licensing.storage import LicenseStore
 from autotube.licensing.types import LicenseState, LicenseStatus
 from licensing_server.issuance import sign_activation_token
 
@@ -47,11 +48,37 @@ def test_activate_valid_token() -> None:
     assert state.entitlements == ["render"]
 
 
-def test_activate_does_not_store_human_key() -> None:
+def test_activate_persists_signed_activation_token_and_round_trips(tmp_path) -> None:
     private_key = Ed25519PrivateKey.generate()
     token = _sign(private_key)
     state = _service(private_key).activate(token, DEVICE, "1.0.0")
-    assert token not in str(state.to_dict())
+    store = LicenseStore(directory=tmp_path)
+    store.save(state)
+
+    serialized = state.to_dict()
+    assert serialized["activation_token"] == token
+    assert "product_key" not in serialized
+    assert "ATK-XXXXX-XXXXX-XXXXX-XXXXX-X" not in str(serialized)
+
+    restored = store.load()
+    assert restored.activation_token == token
+    validated = _service(private_key).validate(restored, "1.0.0")
+    assert validated.status == LicenseStatus.ACTIVATED
+    assert validated.activation_token == token
+
+
+def test_deactivate_clears_persisted_activation_token(tmp_path) -> None:
+    private_key = Ed25519PrivateKey.generate()
+    token = _sign(private_key)
+    store = LicenseStore(directory=tmp_path)
+    store.save(_service(private_key).activate(token, DEVICE, "1.0.0"))
+
+    deactivated = _service(private_key).deactivate(store.load(), "1.0.0")
+    store.save(deactivated)
+
+    restored = store.load()
+    assert restored.status == LicenseStatus.NOT_ACTIVATED
+    assert restored.activation_token is None
 
 
 def test_activate_wrong_device_rejected() -> None:

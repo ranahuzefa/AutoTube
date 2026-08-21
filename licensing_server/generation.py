@@ -31,6 +31,27 @@ def generate_canonical_key() -> str:
     return payload + _checksum_character(payload)
 
 
+def normalize_product_key(raw: str) -> str:
+    """Return the canonical key after validating the user-facing form."""
+    if not isinstance(raw, str):
+        raise ValueError("Product key must be text.")
+
+    stripped = "".join(raw.split()).upper().replace("-", "")
+    if stripped.startswith(PRODUCT_KEY_PREFIX):
+        stripped = stripped[len(PRODUCT_KEY_PREFIX) :]
+
+    expected_length = PRODUCT_KEY_PAYLOAD_LENGTH + 1
+    if len(stripped) != expected_length:
+        raise ValueError("Product key has an invalid length.")
+    if any(char not in PRODUCT_KEY_ALPHABET for char in stripped):
+        raise ValueError("Product key contains invalid characters.")
+
+    payload = stripped[:PRODUCT_KEY_PAYLOAD_LENGTH]
+    if _checksum_character(payload) != stripped[PRODUCT_KEY_PAYLOAD_LENGTH]:
+        raise ValueError("Product key checksum does not match.")
+    return stripped
+
+
 def format_key(canonical: str) -> str:
     """Format a canonical key into ``ATK-XXXXX-XXXXX-XXXXX-XXXXX-C``."""
     payload = canonical[:PRODUCT_KEY_PAYLOAD_LENGTH]
